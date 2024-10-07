@@ -6,7 +6,8 @@
 #include <iomanip>
 #include <vector>
 #include <fstream>
-
+#include <random>
+#include <sstream>
 
 
 using namespace std;
@@ -26,7 +27,6 @@ struct Review {
 class ReviewList {
     private:
         Review* head; //points to the first review in the list
-        Review* tail; //points ot the last review in the list
         int count; //number of reviews in the list
 
     public:
@@ -38,22 +38,6 @@ class ReviewList {
             Review* newReview = new Review(rating, comments);
             newReview -> next = head;
             head = newReview;
-
-            if (tail == nullptr) {
-                tail = head;
-            }
-            count++;
-        }
-
-        void addToTail(double rating, string comments){
-            Review* newReview = new Review(rating, comments);
-
-            if (tail == nullptr){
-                head = tail = newReview;
-            } else {
-                tail -> next = newReview;
-                tail = newReview;
-            }
             count++;
         }
 
@@ -65,8 +49,8 @@ class ReviewList {
 
             cout << "Outputing all reviews:" << endl;
             while (current != nullptr) {
-                cout << "    > Reviews #" << reviewNum<< ": "
-                     << current->rating << ": " << current->comments << endl;
+                cout << "    > Reviews #" << reviewNum<< ": " << fixed << setprecision (1) 
+                    << current->rating << ": " << current->comments << endl;
                 sum += current -> rating;
                 current = current -> next;
                 reviewNum++;
@@ -74,10 +58,11 @@ class ReviewList {
 
             if (count > 0) {
                 double average = sum / count;
-                cout << "    > Average: " << fixed << setprecision(5) << average << endl;
+                cout << "    > Average: " << fixed << setprecision(2) << average << endl;
             }
         }
 
+        // Destructor to free allocated memory
         ~ReviewList() {
             while (head != nullptr){
                 Review* temp = head;
@@ -86,6 +71,32 @@ class ReviewList {
             }
         }
     };
+
+    //class to represent movie and reviews
+    class Movie {
+        private: 
+            string title;
+            ReviewList reviews;
+
+        public:
+            //constructor to init movie with review
+            Movie(const string& t) : title(t) {}
+
+            //adds new review to title
+            void addReview (double rating, const string& comment) {
+                reviews.addToHead(rating, comment);
+            }
+
+            //display movie information
+            void displayInfo() {
+                cout << "Movie: " << title << endl;
+                reviews.displayReviews();
+                cout << endl;
+            }
+    };
+
+    
+
 
     double getRating() {
         double rating;

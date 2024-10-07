@@ -1,6 +1,3 @@
-// comsc 210 | Lab 19 abstract & automate | Robert Stonemetz
-
-
 #include <iostream>
 #include <string>
 #include <iomanip>
@@ -9,160 +6,140 @@
 #include <random>
 #include <sstream>
 
-
 using namespace std;
 
-
-//structure to represent a single movie review
-
+// Structure to represent a single review
 struct Review {
     double rating;
     string comments;
     Review* next;
 
-    //initialize a review
-    Review(double r, string c) : rating(r), comments(c), next(nullptr){}
+    // Constructor to initialize a review
+    Review(double r, string c) : rating(r), comments(c), next(nullptr) {}
 };
 
+// Class to manage a linked list of reviews
 class ReviewList {
-    private:
-        Review* head; //points to the first review in the list
-        int count; //number of reviews in the list
+private:
+    Review* head;  // Pointer to the first review in the list
+    int count;     // Number of reviews in the list
 
-    public:
-    //initialize a list
-    ReviewList() : head(nullptr), tail(nullptr), count(0) {}
+public:
+    // Constructor to initialize an empty review list
+    ReviewList() : head(nullptr), count(0) {}
 
-        //add review to the head of the list
-        void addToHead (double rating, string comments) {
-            Review* newReview = new Review(rating, comments);
-            newReview -> next = head;
-            head = newReview;
-            count++;
+    // Method to add a new review to the head of the list
+    void addToHead(double rating, string comments)  {
+        Review* newReview = new Review(rating, comments);
+        newReview->next = head;
+        head = newReview;
+        count++;
+    }
+
+    // Method to display all reviews in the list
+    void displayReviews() const {
+        Review* current = head;
+        int reviewNum = 1;
+        double sum = 0;
+
+        cout << "Reviews:" << endl;
+        while (current != nullptr) {
+            cout << "  > Review #" << reviewNum << ": "
+                << fixed << setprecision(1) << current->rating << ": " << current->comments << endl;
+            sum += current->rating;
+            current = current->next;
+            reviewNum++;
         }
 
-        //display reviews
-        void displayReviews(){
-            Review* current = head;
-            int reviewNum = 1;
-            double sum = 0;
-
-            cout << "Outputing all reviews:" << endl;
-            while (current != nullptr) {
-                cout << "    > Reviews #" << reviewNum<< ": " << fixed << setprecision (1) 
-                    << current->rating << ": " << current->comments << endl;
-                sum += current -> rating;
-                current = current -> next;
-                reviewNum++;
-            }
-
-            if (count > 0) {
-                double average = sum / count;
-                cout << "    > Average: " << fixed << setprecision(2) << average << endl;
-            }
-        }
-
-        // Destructor to free allocated memory
-        ~ReviewList() {
-            while (head != nullptr){
-                Review* temp = head;
-                head = head -> next;
-                delete temp;
-            }
-        }
-    };
-
-    //class to represent movie and reviews
-    class Movie {
-        private: 
-            string title;
-            ReviewList reviews;
-
-        public:
-            //constructor to init movie with review
-            Movie(const string& t) : title(t) {}
-
-            //adds new review to title
-            void addReview (double rating, const string& comment) {
-                reviews.addToHead(rating, comment);
-            }
-
-            //display movie information
-            void displayInfo() {
-                cout << "Movie: " << title << endl;
-                reviews.displayReviews();
-                cout << endl;
-            }
-    };
-
-    
-
-
-    double getRating() {
-        double rating;
-        while (true) {
-            cout << "Enter review rating 0-5: ";
-            if (cin >> rating && rating >= 0 && rating <=5) {
-                cin.ignore(10000, '\n');
-                return rating;
-            } else {
-                cout << "Invalid input. Please enter a number between 0 and 5. " << endl;
-                cin.clear();
-                cin.ignore(10000, '\n');
-            }
+        // Calculate and display average rating if there are reviews
+        if (count > 0) {
+            double average = sum / count;
+            cout << "  > Average Rating: " << fixed << setprecision(2) << average << endl;
         }
     }
 
-    string getComments() {
-        string comments;
-        cout << "Enter review comments: ";
-        getline(cin, comments);
-        return comments;
+    // Destructor to free allocated memory
+    ~ReviewList() {
+        while (head != nullptr) {
+            Review* temp = head;
+            head = head->next;
+            delete temp;
+        }
     }
+};
 
-    bool continueReviewing() {
-        char choice;
-        do {
-            cout << "Enter another review? Y/N: ";
-            cin >> choice;
-            cin.ignore(10000, '\n');  // Clear input buffer
-            choice = toupper(choice);
-        } while (choice != 'Y' && choice != 'N');
-        return choice == 'Y';
-    }
-
-
-
-
-int main(){
+// Class to represent a movie with its reviews
+class Movie {
+private:
+    string title;
     ReviewList reviews;
-    int choice;
 
-    //ask user which insertion to use
-    cout << "Which linked list method should we use?" << endl 
-         << "    [1] New nodes are added at the head of thelinked list." << endl
-         << "    [2] New nodes are added at the tailof the linked list." << endl
-         << "    choice: ";
-    cin >> choice;
+public:
+    // Constructor to initialize a movie with its title
+    Movie(const string& t) : title(t) {}
 
-    cin.ignore (10000, '\n'); //clears input.
+    // Method to add a new review to the movie
+    void addReview(double rating, const string& comment)  {
+        reviews.addToHead(rating, comment);
+    }
 
-    bool addToTail = (choice == 2);
+    // Method to display movie information and its reviews
+    void displayInfo() const {
+        cout << "Movie: " << title << endl;
+        reviews.displayReviews();
+        cout << endl;
+    }
+};
 
-    //loop to add reviews
-    do {
-        double rating = getRating();
-        string comments = getComments();
+// Function to generate a random rating between 1.0 and 5.0
+double generateRandomRating() {
+    static random_device rd;
+    static mt19937 gen(rd());
+    static uniform_real_distribution<> dis(1.0, 5.0);
+    return round(dis(gen) * 10.0) / 10.0;  // Round to one decimal place
+}
 
-        if (addToTail) {
-            reviews.addToTail(rating,comments);
-        } else {
-            reviews.addToHead(rating, comments);
+// Function to read movies and their reviews from a file
+vector<Movie> readMoviesFromFile(const string& filename) {
+    vector<Movie> movies;
+    ifstream file(filename);
+    string line;
+	
+
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            if (line[0] == '#') {  // New movie title
+                string title = line.substr(1);
+                movies.emplace_back(title);
+            }
+            else if (!movies.empty()) {
+                // Add review to the last movie
+                movies.back().addReview(generateRandomRating(), line);
+            }
         }
-    } while (continueReviewing());
+    
+    file.close();
+    } else {
+        cout << "Unable to open file: " << filename << endl;
+    }
 
-    reviews.displayReviews();
+    return movies;
+}
+
+int main() {
+    // Read movies from file
+    vector<Movie> movies = readMoviesFromFile("movies.txt");
+
+    // Check if any movies were loaded
+    if (movies.empty()) {
+        cout << "No movies were loaded. Please check the content of movies.txt." << endl;
+        return 1;
+    }
+
+    // Display information for each movie
+    for (const auto& movie : movies) {
+        movie.displayInfo();
+    }
 
     return 0;
-
 }
